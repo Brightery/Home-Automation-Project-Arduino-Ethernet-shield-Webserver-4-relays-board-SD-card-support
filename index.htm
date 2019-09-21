@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="BrighteryAutomation" ng-controller="mainCtrl">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1 user-scalable=no">
+    <link rel="icon" type="image/png" href="https://www.brightery.com/styles/default/assets/img/favicon/favicon-32x32.png" />
+    <title>Brightery Automation</title>
+    <style>
+        #container {
+            width: 100%;
+            max-width: 900px;
+            margin: 2em auto;
+        }
+        .box {
+            margin-bottom: 20px;
+            height: 200px;
+            background:#BFBFBF;
+            width: 200px;
+            float: left;
+            margin-left: 5px;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 200px;
+            font-weight: bold;
+            color: #fff
+            
+        }
+       
+        .loading{
+            position: fixed;
+            left:50%;
+            top: 50%;
+            z-index: 9999
+        }
+        .lds-heart {
+          display: inline-block;
+          position: relative;
+          width: 64px;
+          height: 64px;
+          transform: rotate(45deg);
+          transform-origin: 32px 32px;
+        }
+        .lds-heart div {
+          top: 23px;
+          left: 19px;
+          position: absolute;
+          width: 26px;
+          height: 26px;
+          background: red;
+          animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        .lds-heart div:after,
+        .lds-heart div:before {
+          content: " ";
+          position: absolute;
+          display: block;
+          width: 26px;
+          height: 26px;
+          background: red;
+        }
+        .lds-heart div:before {
+          left: -17px;
+          border-radius: 50% 0 0 50%;
+        }
+        .lds-heart div:after {
+          top: -17px;
+          border-radius: 50% 50% 0 0;
+        }
+        @keyframes lds-heart {
+          0% {
+            transform: scale(0.95);
+          }
+          5% {
+            transform: scale(1.1);
+          }
+          39% {
+            transform: scale(0.85);
+          }
+          45% {
+            transform: scale(1);
+          }
+          60% {
+            transform: scale(0.95);
+          }
+          100% {
+            transform: scale(0.9);
+          }
+        }
+        footer{
+            background: #000;
+            color: #fff;
+            text-align: center;
+            width:100%;
+            height: 60px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            line-height: 60px;
+        }
+        footer a{
+            color: #fff;
+        }
+        .logo{
+            height: 33px;
+            line-height: 33px;
+            margin-bottom: 60px;
+            font-size: 20px;
+        }
+        .logo img{
+            vertical-align: middle;
+        }
+        </style>
+  </head>
+
+  <body>
+      
+    <div id="container" class="cols">
+        <div class="logo">
+            <img src="https://www.brightery.com/styles/default/assets/img/logo.png" /> Brightery
+        </div>
+        <div class="box" style="background: {{item.status? 'green' : 'orange'}}" ng-repeat="item in appliances" ng-click="turn(item)">{{item.title}}</div>
+        <div ng-show="loading" class="loading">
+            <div class="lds-heart"><div></div></div>
+        </div>
+    </div>
+      <footer>
+          Powered by <a href="https://www.brightery.com/en/">Brightery.com</a>.
+      </footer>
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.8/angular.min.js"></script>
+    <script>
+        var BrighteryAutomation = angular.module("BrighteryAutomation", []);
+        BrighteryAutomation.controller("mainCtrl", function($scope,$http){
+            $scope.loading = false;
+            $scope.appliances = [
+                {
+                    title : "Room lights", 
+                    status: false, 
+                    pin: "6"
+                },
+                {
+                    title : "My Workstation", 
+                    status: false, 
+                    pin: "7"
+                },
+                {
+                    title : "Fan", 
+                    status: false, 
+                    pin: "8"
+                },
+                {
+                    title : "Backup", 
+                    status: false, 
+                    pin: "9"
+                }
+            ];
+            
+            $scope.turn = function(item) {
+                $scope.loading = true;
+                if(item.status)
+                    item.status = false;
+                else
+                    item.status = true;
+                
+                $http({
+                    url: "update?p="+item.pin+"&s="+item.status,
+                    method: 'get',
+                }).then(function(res){
+                    $scope.loading = false;
+                });
+            };
+            
+            $scope.get = function(){
+                $http({
+                    url: "get",
+                    method: 'get',
+                }).then(function(res){
+                    angular.forEach($scope.appliances, function(v,k){
+                        $scope.appliances[k].status = (res.data[v.pin] == "1")? true : false;
+                    });
+                });
+            };
+            
+            $scope.get();
+            
+        });
+        
+    </script>
+
+  </body>
+</html>
